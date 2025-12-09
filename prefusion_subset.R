@@ -7,7 +7,7 @@ library(ggplot2)
 library(dplyr)
 library(lubridate)
 ########################### IMPORT FILES ###############################
-
+# plug in correct file path
 file = "C:/Users/snmum/OneDrive/PhD/NVBP/NVBP_Rproj/Copy_NVBP_Prefusion.xlsx"
 Grooming = readxl::read_xlsx(file, sheet="NVT_TMF_Focal_Grooming")
 

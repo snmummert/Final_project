@@ -10,10 +10,10 @@ library(purrr)
 library(hms)
 ########################### IMPORT FILES ###############################
 
-# folder path
+# plug in folder path
 folder <- "C:/Users/snmum/OneDrive/PhD/NVBP/NVBP_Rproj/Copy_NVBP_postfusion/"
 
-# list all .xlsx files
+# plug in file paths (theres probably a better way)
 files <- list.files(path = folder, pattern = "\\.xlsx$", full.names = TRUE)
 files
 
@@ -76,7 +76,6 @@ all_groom_list <- list(may1groom, june2groom, may8groom, may12groom, june13groom
 all_groom_list<- lapply(all_groom_list, function(df) {
   df %>% filter(!if_all(everything(), is.na))
 })
-
 
 # Function to replace "in prog"/"In prog" with TMF times
 clean_inprog_times <- function(df) {
