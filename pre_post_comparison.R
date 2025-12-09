@@ -4,9 +4,12 @@ library(ggfortify)
 library(lme4)
 library(ggpubr)
 library(DHARMa)
-library(emmeans)
+
+#you must load in prefusion_subset and postfusion_subset first
 
 ################ Groom instance and Rate ###################
+
+#### IGNORE THIS SECTION ####
 
 # Fuse groom instance rates from Pre and Post Fusion
 prefusion_subset_groom_rate_df$FusionPeriod <- "Pre"
@@ -34,7 +37,7 @@ groom_rate_df <- combined_rates_long %>%
   filter(n_distinct(FusionPeriod) == 2) %>%
   ungroup()
 
-###################### groom rate regression ##############################
+############ groom rate regression (IGNORE THIS FOR NOW) ######################
 Y = groom_rate_df$GroomRate # response
 X1 = groom_rate_df$FusionPeriod # sep fixed effect
 X2 = groom_rate_df$Focal_ID #sep fixed effect
@@ -54,14 +57,6 @@ plot(sim)
 testDispersion(sim)
 testZeroInflation(sim)
 testUniformity(sim)
-
-
-
-    
-    
-    
-    
-    
 
 model_1_glmm <- glmer(
   groom_scans ~ FusionPeriod + (1 | Focal_ID),
@@ -102,7 +97,8 @@ ggplot() +
 
 
 
-
+#please ignore this section I am coming back to work on it after this class, 
+#the focus of my final is the Dyad Groom Rate section!
 
 
 
@@ -135,25 +131,23 @@ dyad_change_df <- dyad_groom_rate_df %>%
   ) %>%
   mutate(Change = Post - Pre)
 
+# Model testing
 
-
-# Model testing #
-
-# Simple linear model
+#Simple linear model
 lm_model <- lm(dyad_rates ~ FusionPeriod, data = dyad_groom_rate_df)
 
-# ANOVA
+#ANOVA
 anova_model <- aov(dyad_rates ~ FusionPeriod, data = dyad_groom_rate_df)
 
-# Linear mixed model
+#Linear mixed model
 lmm_model <- lmer(dyad_rates ~ FusionPeriod + (1 | Dyad), data = dyad_groom_rate_df, REML=FALSE)
 
-# Beta GLMM
+#Beta GLMM
 beta_model <- glmmTMB(dyad_rates ~ FusionPeriod + (1 | Dyad),
                       family = beta_family(link="logit"),
                       data = dyad_groom_rate_df)
 
-# Test model fit #
+#Test model fit #
 model_names <- c("LM", "ANOVA", "LMM", "Beta GLMM")
 aic_values <- c(AIC(lm_model),
                 AIC(anova_model),
@@ -179,14 +173,23 @@ model_fit
 #Plot showing model fit
 dyad_groom_rate_df$predicted <- predict(beta_model, type = "response")
 
-ggplot(dyad_groom_rate_df, aes(x=predicted, y=dyad_rates)) +
-  geom_point(alpha=0.5) +
-  geom_smooth() +
-  geom_abline(intercept=0, slope=1, linetype="dashed", color="orchid") +
-  theme_classic() +
-  xlab("Predicted Grooming Rate") +
-  ylab("Observed Grooming Rate") +
-  ggtitle("Beta GLMM: Predicted vs Observed Dyadic Grooming")
+dyad_groom_rate_df$predicted <- predict(beta_model, type = "response")
+
+ggplot(dyad_groom_rate_df, aes(x = predicted, 
+                               y = dyad_rates, 
+                               color = FusionPeriod)) +
+  geom_point(alpha = 0.6, size = 2) +
+  geom_abline(intercept = 0, slope = 1, 
+              linetype = "dashed", color = "orchid") +
+  scale_color_manual(values = c("Pre" = "deeppink",
+                                "Post" = "blue")) +
+theme_classic(base_size = 14) +
+  labs(
+    x = "Predicted Grooming Rate",
+    y = "Observed Grooming Rate",
+    color = "Fusion Period",
+    title = "Beta GLMM: Predicted vs Observed Dyadic Grooming Rates"
+  )
 
 # check assumptions
 sim_res <- simulateResiduals(fittedModel = beta_model)
@@ -202,6 +205,8 @@ testOutliers(sim_res) # no major outliers
 #Model diagnostics performed using DHARMa revealed simulated residuals 
 #were unifrm (KS test), dispersion was not significant, and no outliers. 
 #This means assumptions were met and the Beta GLMM provides adequate fit.
+#This also means that my lack of significance in Fusion is not to do with 
+#poor model fit.
 
 #what happened
 ggplot(dyad_groom_rate_df, aes(x=FusionPeriod, y=dyad_rates, group=Dyad)) +
@@ -221,6 +226,7 @@ ggplot(dyad_change_df, aes(x = Change)) +
   geom_vline(xintercept = 0, linetype = "dashed", color = "orchid") +
   xlab("Dyadic grooming change (Post - Pre)") +
   ylab("Density") +
+  ggtitle()
   theme_classic()
 
 
