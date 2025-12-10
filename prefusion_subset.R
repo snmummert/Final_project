@@ -181,7 +181,7 @@ recipient_totals <- dyad_summary %>%
 
 
 # Calculate expected amount Groomer would be grooming Recipient based on totals
-dyad_summary <- dyad_summary %>%
+dyad_summary = dyad_summary %>%
   left_join(groomer_totals, by = "Groomer") %>%
   left_join(recipient_totals, by = "Recipient") %>%
   mutate(
@@ -201,18 +201,37 @@ prefusion_subset_dyadsummary = dyad_summary %>%
     deviation
   )
 
+#some unclean data removed
+remove_ids = c("SD", "GB")
+prefusion_dyad_plot = dyad_summary %>% 
+  filter(
+    !Groomer %in% remove_ids, 
+    !Recipient %in% remove_ids
+  )
+
 # plotting dyadic grooming relationships
-prefusion_dyad_plot = dyad_summary %>%
+prefusion_dyad_plot = prefusion_dyad_plot %>%
   ggplot(aes(x = Groomer, y = Recipient, size = dyads_total_groom_secs, color = deviation)) +
   geom_point(alpha = 0.7) +
-  scale_color_gradient2(low = "blue", mid = "orchid", high = "red", midpoint = 0) +
-  labs(title = "Dyadic Grooming Relationships Pre Fusion (June–Sep 2024)",
-       x = "Groomer",
-       y = "Recipient",
-       size = "Total Duration (seconds)",
-       color = "Deviation from Expected") +
+  scale_color_gradient2(
+    low = "blue",
+    mid = "orchid",
+    high = "red",
+    midpoint = 0,
+    name = "Deviation from Expected") +
+  scale_size_continuous(name = "Total Duration (seconds)") +
+  guides(
+    color = guide_colorbar(order = 1),
+    size  = guide_legend(order = 2)) +
+  labs(
+    title = "Dyadic Grooming Relationships Pre Fusion (June–Sep 2024)",
+    x = "Groomer",
+    y = "Recipient") +
   theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    legend.box = "vertical")
+
 print(prefusion_dyad_plot)
 
 

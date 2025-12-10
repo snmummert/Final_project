@@ -294,8 +294,17 @@ postfusion_subset_dyadsummary = dyad_summary2 %>%
     deviation
   )
 
+
+#some unclean data removed
+remove_ids = c("EC,INF", "female INF (flat top ears)", "PR_INF", "PR'S INF", "PR's INF", "INF,LK", "INF (PR)", "female INF (NOT flat top ears)")
+postfusion_dyad_plot = dyad_summary2 %>% 
+  filter(
+    !Groomer %in% remove_ids, 
+    !Recipient %in% remove_ids
+  )
+
 # plotting dyadic grooming relationships
-postfusion_dyad_plot = dyad_summary2 %>%
+postfusion_dyad_plot = postfusion_dyad_plot %>%
   ggplot(aes(x = Groomer, y = Recipient, size = dyads_total_groom_secs, color = deviation)) +
   geom_point(alpha = 0.7) +
   scale_color_gradient2(low = "blue", mid = "orchid", high = "red", midpoint = 0) +
@@ -307,4 +316,3 @@ postfusion_dyad_plot = dyad_summary2 %>%
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 print(postfusion_dyad_plot)
-
