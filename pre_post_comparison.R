@@ -1,8 +1,6 @@
-library(glmmTMB)
 library(ggplot2)
-library(ggfortify)
 library(lme4)
-library(ggpubr)
+library(glmmTMB)
 library(DHARMa)
 
 #you must load in prefusion_subset and postfusion_subset first
@@ -165,102 +163,4 @@ summary(beta_model)
 #Could still indicate that there was some level of disruption.
 
 #Still have work to do to test change in general. 
-
-
-#### IGNORE THIS SECTION ####
-
-# Fuse groom instance rates from Pre and Post Fusion
-prefusion_subset_groom_rate_df$FusionPeriod <- "Pre"
-postfusion_subset_groom_rate_df$FusionPeriod <- "Post"
-groom_rate_df = bind_rows(
-  prefusion_subset_groom_rate_df,
-  postfusion_subset_groom_rate_df
-)
-
-combined_rates_long <- groom_rate_df %>%
-  select(-FusionPeriod) %>%   # <-- remove old column
-  pivot_longer(
-    cols = c(prefusion_grooming_rate, postfusion_grooming_rate),
-    names_to = "FusionPeriod",
-    values_to = "GroomRate",
-    values_drop_na = TRUE
-  ) %>%
-  mutate(
-    FusionPeriod = ifelse(FusionPeriod == "prefusion_grooming_rate", "Pre", "Post"),
-    FusionPeriod = factor(FusionPeriod, levels = c("Pre", "Post"))
-  )
-
-groom_rate_df <- combined_rates_long %>%
-  group_by(Focal_ID) %>%
-  filter(n_distinct(FusionPeriod) == 2) %>%
-  ungroup()
-
-
-# ignore this section I'm just trying things out
-################ Groom instance and Rate ###################
-
-############ groom rate regression (IGNORE THIS FOR NOW) ######################
-Y = groom_rate_df$GroomRate # response
-X1 = groom_rate_df$FusionPeriod # sep fixed effect
-X2 = groom_rate_df$Focal_ID #sep fixed effect
-
-#interaction for rate
-groomingrate_glm = glm(GroomRate ~ FusionPeriod * Focal_ID, data = groom_rate_df)
-
-#GLM for Groom Instances
-groommodel = glm(groom_scans ~ FusionPeriod * Focal_ID + offset(log(total_scans)),
-                 data = groom_rate_df, family = "poisson")
-
-summary(groommodel)
-
-
-sim <- simulateResiduals(fittedModel = groomingrate_glm)
-plot(sim)
-testDispersion(sim)
-testZeroInflation(sim)
-testUniformity(sim)
-
-model_1_glmm <- glmer(
-  groom_scans ~ FusionPeriod + (1 | Focal_ID),
-  data = groom_rate_df,
-  family = poisson
-)
-summary(model_1_glmm)
-
-# From this GLMM (fit by max), family poisson (counts), we see that 
-# my grooming scans decrease in the post-fusio period, 
-# with effect size at -0.392 (on the log scale), and highly 
-# significant results, with p = 1 x 10e-9. The random intercept standard dev
-# is 0.368, meaning that IDs differ in their pre-fusion baseline
-
-#This is the better model because it accounts for pre/post measures
-#and has enough degrees of freedom to estime properly
-
-predictdata <- expand.grid(
-  FusionPeriod = unique(groom_rate_df$FusionPeriod),
-  Focal_ID = unique(groom_rate_df$Focal_ID)
-)
-predictdata$pred <- predict(model_1_glmm, newdata = predictdata, type = "response")
-
-# Plot GLMM Predicted Grooming Across Fusion
-ggplot() +
-  geom_point(
-    data = groom_rate_df,
-    aes(FusionPeriod, groom_scans, color = Focal_ID),
-    position = position_jitter(width = 0.1)
-  ) +
-  geom_line(
-    data = predictdata,
-    aes(FusionPeriod, pred, color = Focal_ID, group = Focal_ID),
-    size = 1.2
-  ) +
-  theme_bw() +
-  labs(y = "Grooming Scans", title = "GLMM Predicted Grooming Across Fusion")
-
-
-
-#please ignore this section I am coming back to work on it after this class, 
-#the focus of my final is the Dyad Groom Rate section!
-
-
 

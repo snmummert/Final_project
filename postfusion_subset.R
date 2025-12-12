@@ -1,13 +1,11 @@
 
 ############################ LOAD PACKAGES ##########################
+library(hms)
 library(tidyverse) 
 library(readxl) 
-library(writexl)
 library(ggplot2)
 library(dplyr)
 library(lubridate)
-library(purrr)
-library(hms)
 ########################### IMPORT FILES ###############################
 
 # plug in folder path
